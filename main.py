@@ -42,7 +42,7 @@ class MainHandler(webapp2.RequestHandler):
                 name = self.resolve_name(barcode)
                 open_details = self.request.params.get("d", None)
                 if open_details:
-                    self.redirect(str("http://www.google.se/search?q=%s" % urllib.quote_plus(name)))
+                    self.redirect(str("http://www.google.se/search?q=%s" % urllib.quote_plus(name.encode("utf8"))))
                 else:
                     self.set_default_headers()
                     self.response.content_type = "image/png"
