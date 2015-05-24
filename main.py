@@ -13,6 +13,9 @@ PLUGIN_INFO = {
 # cache for 2 days
 EXPIRATION_IN_SECONDS = 2 * 24 * 60 * 60
 
+# increase appengine's deadline
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(45)
 
 class GMT(datetime.tzinfo):
     def utcoffset(self, dt):
