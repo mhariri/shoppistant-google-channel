@@ -4,6 +4,7 @@ import urllib2
 import datetime
 
 import webapp2
+from google.appengine.api import urlfetch
 
 
 PLUGIN_INFO = {
@@ -12,10 +13,6 @@ PLUGIN_INFO = {
 
 # cache for 2 days
 EXPIRATION_IN_SECONDS = 2 * 24 * 60 * 60
-
-# increase appengine's deadline
-from google.appengine.api import urlfetch
-urlfetch.set_default_fetch_deadline(45)
 
 class GMT(datetime.tzinfo):
     def utcoffset(self, dt):
@@ -64,13 +61,16 @@ class MainHandler(webapp2.RequestHandler):
         self.response.headers["Cache-Control"] = "public, max-age=%d" % EXPIRATION_IN_SECONDS
 
     def resolve_name(self, ean_code):
-        request = urllib2.Request(
+        response = urlfetch.fetch(
             "http://nameresolver-shoppistant.rhcloud.com/products/%s" % urllib.quote_plus(ean_code),
-            None, {'Referrer': 'http://shoppistant.com'})
-        response = urllib2.urlopen(request)
+            None, headers={'Referrer': 'http://shoppistant.com'}, deadline=45)
 
-        results = json.load(response)
-        return results["name"];
+        if response.status_code != 200:
+            raise urllib2.HTTPError(response.final_url, response.status_code,
+                                    response.content, response.headers, None)
+
+        results = json.loads(response.content)
+        return results["name"]
 
 
 app = webapp2.WSGIApplication([
